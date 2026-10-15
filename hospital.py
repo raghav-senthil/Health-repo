@@ -1,8 +1,12 @@
+"""A simple command-line application for managing hospital patients."""
+
 from dataclasses import dataclass, field
 
 
 @dataclass
 class Patient:
+    """Store the identifying and billing information for one patient."""
+
     patient_id: int
     name: str
     age: int
@@ -12,11 +16,24 @@ class Patient:
 
 
 class Hospital:
+    """Manage patient admissions, doctor assignments, and billing."""
+
     def __init__(self):
+        # Records are kept in memory and are cleared when the program exits.
         self.patients = {}
         self.next_patient_id = 1
 
     def admit_patient(self, name, age, diagnosis):
+        """Admit a patient and return their new Patient record.
+
+        Args:
+            name: The patient's full name.
+            age: The patient's age in years; must be greater than zero.
+            diagnosis: A short description of the patient's condition.
+
+        Raises:
+            ValueError: If the name is empty or the age is not positive.
+        """
         if not name.strip():
             raise ValueError("Patient name cannot be empty.")
         if age <= 0:
@@ -29,6 +46,15 @@ class Hospital:
         return patient
 
     def assign_doctor(self, patient_id, doctor_name):
+        """Assign a doctor to an admitted patient and return the updated record.
+
+        Args:
+            patient_id: The ID given to the patient during admission.
+            doctor_name: The assigned doctor's name.
+
+        Raises:
+            ValueError: If the patient does not exist or the doctor's name is empty.
+        """
         patient = self._get_patient(patient_id)
         if not doctor_name.strip():
             raise ValueError("Doctor name cannot be empty.")
@@ -37,10 +63,25 @@ class Hospital:
         return patient
 
     def generate_bill(self, patient_id, daily_rate, days, treatment_charges=0.0):
+        """Calculate, save, and display a patient's bill total.
+
+        Args:
+            patient_id: The ID given to the patient during admission.
+            daily_rate: The hospital charge for one day of stay.
+            days: The number of days to include in the bill.
+            treatment_charges: Additional charges for treatment (defaults to 0).
+
+        Returns:
+            The total bill amount.
+
+        Raises:
+            ValueError: If the patient does not exist or any amount/count is negative.
+        """
         patient = self._get_patient(patient_id)
         if daily_rate < 0 or treatment_charges < 0 or days < 0:
             raise ValueError("Rates, days, and charges cannot be negative.")
 
+        # The bill combines the stay cost with any additional treatment charges.
         patient.charges = daily_rate * days + treatment_charges
         print(
             f"Bill for {patient.name} (ID {patient.patient_id}): "
@@ -49,6 +90,17 @@ class Hospital:
         return patient.charges
 
     def patient_summary(self, patient_id):
+        """Print and return a readable summary for one patient.
+
+        Args:
+            patient_id: The ID given to the patient during admission.
+
+        Returns:
+            A multiline string containing the patient's details and current bill.
+
+        Raises:
+            ValueError: If no patient has the supplied ID.
+        """
         patient = self._get_patient(patient_id)
         summary = (
             f"Patient ID: {patient.patient_id}\n"
@@ -62,6 +114,7 @@ class Hospital:
         return summary
 
     def print_patients(self):
+        """Print a compact list of all admitted patients."""
         if not self.patients:
             print("No patients have been admitted.")
             return
@@ -74,6 +127,7 @@ class Hospital:
             )
 
     def _get_patient(self, patient_id):
+        """Find a patient by ID or raise ValueError when the ID is unknown."""
         try:
             return self.patients[int(patient_id)]
         except (KeyError, ValueError):
@@ -81,6 +135,7 @@ class Hospital:
 
 
 def main():
+    """Run the interactive menu and dispatch choices to Hospital methods."""
     hospital = Hospital()
     actions = {
         "1": "Admit a patient",
